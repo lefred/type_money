@@ -16,8 +16,7 @@
 #include "field.h"
 #include "sql_type.h"
 
-
-class Type_handler_money : public Type_handler_double
+class Type_handler_money : public Type_handler_newdecimal
 {
 public:
   const Type_collection *type_collection() const override;
@@ -56,4 +55,3 @@ public:
   void sort_string(uchar *buff, uint length) override;
 
 };
-
