@@ -19,6 +19,11 @@
 class Type_handler_money : public Type_handler_double
 {
 public:
+  protocol_send_type_t protocol_send_type() const override
+  {
+    return PROTOCOL_SEND_STRING;
+  }
+
   const Type_collection *type_collection() const override;
   bool Column_definition_data_type_info_image(Binary_string *to,
                                               const Column_definition &def)
@@ -52,6 +57,7 @@ public:
   {}
 
   const Type_handler *type_handler() const override { return &type_handler_money; }
+  bool send(Protocol *protocol) override;
   void make_send_field(Send_field *field) override;
 };
 

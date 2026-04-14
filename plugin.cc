@@ -14,6 +14,7 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1335  USA */
 
 #include "sql_type_money.h"
+#include "protocol.h"
 #include <mysql/plugin_data_type.h>
 #include <mysql/plugin_function.h>
 
@@ -65,7 +66,26 @@ Field *Type_handler_money::make_table_field_from_def(TABLE_SHARE *share,
 
 void Field_money::make_send_field(Send_field *field)
 {
-  Field_double::make_send_field(field);
+  Field::make_send_field(field);
+  field->set_handler(&type_handler_varchar);
+  field->set_data_type_name(LEX_CSTRING{STRING_WITH_LEN("money")});
+  field->length= MY_MAX(field->length, (ulong) (field_length + 32));
+  field->decimals= 0;
+}
+
+bool Field_money::send(Protocol *protocol)
+{
+  DBUG_ASSERT(marked_for_read());
+
+  String numeric_buf;
+  String money_buf;
+  String *numeric= Field_double::val_str(&numeric_buf, &numeric_buf);
+
+  money_buf.set_charset(numeric->charset());
+  if (money_buf.append('$') || money_buf.append(*numeric))
+    return true;
+
+  return protocol->store(&money_buf);
 }
 
 static struct st_mariadb_data_type plugin_descriptor_type_money=
