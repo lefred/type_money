@@ -33,17 +33,6 @@ bool Type_handler_money::Column_definition_data_type_info_image(
   return to->append(Type_handler_money::name().lex_cstring());
 }
 
-Field *Type_handler_money::make_table_field(MEM_ROOT *root,
-                                            const LEX_CSTRING *name,
-                                            const Record_addr &rec,
-                                            const Type_all_attributes &attr,
-                                            TABLE_SHARE *share) const
-{
-  Column_definition_attributes dattr(attr);
-  return make_table_field_from_def(share, root, name, rec,
-                                   Bit_addr(), &dattr, 0);
-}
-
 Field *Type_handler_money::make_table_field_from_def(TABLE_SHARE *share,
                                                      MEM_ROOT *root,
                                                      const LEX_CSTRING *name,
