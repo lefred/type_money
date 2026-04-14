@@ -23,13 +23,6 @@ public:
   bool Column_definition_data_type_info_image(Binary_string *to,
                                               const Column_definition &def)
                                               const override;
-
-  Field *make_table_field(MEM_ROOT *root,
-                          const LEX_CSTRING *name,
-                          const Record_addr &rec,
-                          const Type_all_attributes &attr,
-                          TABLE_SHARE *share) const override;
-
   Field *make_table_field_from_def(TABLE_SHARE *share,
                                    MEM_ROOT *root,
                                    const LEX_CSTRING *name,
