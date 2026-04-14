@@ -16,11 +16,19 @@
 #include "field.h"
 #include "sql_type.h"
 
-
 class Type_handler_money : public Type_handler_double
 {
 public:
   const Type_collection *type_collection() const override;
+  bool Column_definition_data_type_info_image(Binary_string *to,
+                                              const Column_definition &def)
+                                              const override;
+
+  Field *make_table_field(MEM_ROOT *root,
+                          const LEX_CSTRING *name,
+                          const Record_addr &rec,
+                          const Type_all_attributes &attr,
+                          TABLE_SHARE *share) const override;
 
   Field *make_table_field_from_def(TABLE_SHARE *share,
                                    MEM_ROOT *root,
@@ -31,29 +39,19 @@ public:
                                    uint32 flags) const override;
 };
 
-class Field_money : public Field_real
+extern Type_handler_money type_handler_money;
+
+class Field_money : public Field_double
 {
 public:
   Field_money(const LEX_CSTRING &name, const Record_addr &addr,
               enum utype unireg_check_arg, uint32 len_arg,
               decimal_digits_t dec_arg, bool zero_arg, bool unsigned_arg)
-    : Field_real(addr.ptr(), len_arg, addr.null_ptr(), addr.null_bit(),
-                 unireg_check_arg, &name, dec_arg, zero_arg, unsigned_arg)
+    : Field_double(addr.ptr(), len_arg, addr.null_ptr(), addr.null_bit(),
+                   unireg_check_arg, &name, dec_arg, zero_arg, unsigned_arg)
   {}
 
-  const Type_handler *type_handler() const override;
-
-  // Still needed to make the class concrete.
-  int store(const char *to, size_t length, CHARSET_INFO *charset) override;
-  int store(double nr) override;
-  int store(longlong nr, bool unsigned_val) override;
-
-  double val_real() override;
-  longlong val_int() override;
-  String *val_str(String *to, String *tmp) override;
-
-  int cmp(const uchar *a, const uchar *b) const override;
-  void sort_string(uchar *buff, uint length) override;
-
+  const Type_handler *type_handler() const override { return &type_handler_money; }
+  void make_send_field(Send_field *field) override;
 };
 

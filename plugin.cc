@@ -17,11 +17,30 @@
 #include <mysql/plugin_data_type.h>
 #include <mysql/plugin_function.h>
 
-static Type_handler_money type_handler_money;
+Type_handler_money type_handler_money;
+static constexpr Name type_name={STRING_WITH_LEN("money")};
 
 const Type_collection *Type_handler_money::type_collection() const
 {
   return Type_handler_double::type_collection();
+}
+
+bool Type_handler_money::Column_definition_data_type_info_image(
+  Binary_string *to, const Column_definition &def) const
+{
+  (void) def;
+  return to->append(Type_handler_money::name().lex_cstring());
+}
+
+Field *Type_handler_money::make_table_field(MEM_ROOT *root,
+                                            const LEX_CSTRING *name,
+                                            const Record_addr &rec,
+                                            const Type_all_attributes &attr,
+                                            TABLE_SHARE *share) const
+{
+  Column_definition_attributes dattr(attr);
+  return make_table_field_from_def(share, root, name, rec,
+                                   Bit_addr(), &dattr, 0);
 }
 
 Field *Type_handler_money::make_table_field_from_def(TABLE_SHARE *share,
@@ -32,77 +51,21 @@ Field *Type_handler_money::make_table_field_from_def(TABLE_SHARE *share,
                                                      const Column_definition_attributes *attr,
                                                      uint32 flags) const
 {
-  return new (root) Field_money(*name, rec,
-                                Field::NONE,
+  (void) share;
+  (void) bit;
+  (void) flags;
+  return new (root) Field_money(*name,
+                                rec,
+                                attr->unireg_check,
                                 attr->length,
                                 attr->decimals,
-                                false,
+                                f_is_zerofill(attr->pack_flag) != 0,
                                 f_is_dec(attr->pack_flag) == 0);
 }
 
-const Type_handler *Field_money::type_handler() const
+void Field_money::make_send_field(Send_field *field)
 {
-  return &type_handler_money;
-}
-
-int Field_money::store(const char *to, size_t length, CHARSET_INFO *charset)
-{
-  char buf[128];
-  size_t n= length < sizeof(buf) - 1 ? length : sizeof(buf) - 1;
-  memcpy(buf, to, n);
-  buf[n]= '\0';
-  return store(my_strtod(buf, nullptr, &errno));
-}
-
-int Field_money::store(double nr)
-{
-  memcpy(ptr, &nr, sizeof(nr));
-  return 0;
-}
-
-int Field_money::store(longlong nr, bool unsigned_val)
-{
-  double d= unsigned_val ? (double) (ulonglong) nr : (double) nr;
-  return store(d);
-}
-
-double Field_money::val_real()
-{
-  double d;
-  memcpy(&d, ptr, sizeof(d));
-  return d;
-}
-
-longlong Field_money::val_int()
-{
-  return (longlong) val_real();
-}
-
-String *Field_money::val_str(String *to, String *tmp)
-{
-  char buf[64];
-  my_snprintf(buf, sizeof(buf), "%.*f", dec, val_real());
-  to->copy(buf, strlen(buf), &my_charset_latin1);
-  return to;
-}
-
-int Field_money::cmp(const uchar *a, const uchar *b) const
-{
-  double da, db;
-  memcpy(&da, a, sizeof(da));
-  memcpy(&db, b, sizeof(db));
-  if (da < db) return -1;
-  if (da > db) return 1;
-  return 0;
-}
-
-void Field_money::sort_string(uchar *buff, uint length)
-{
-  double d= val_real();
-  size_t copy_len= length < sizeof(d) ? length : sizeof(d);
-  memcpy(buff, &d, copy_len);
-  if (length > copy_len)
-    bzero(buff + copy_len, length - copy_len);
+  Field_double::make_send_field(field);
 }
 
 static struct st_mariadb_data_type plugin_descriptor_type_money=
@@ -115,16 +78,16 @@ maria_declare_plugin(type_money)
 {
   MariaDB_DATA_TYPE_PLUGIN,
   &plugin_descriptor_type_money,
-  "money",
+  type_name.ptr(),
   "lefred",
   "Data type MONEY",
   PLUGIN_LICENSE_GPL,
   0,
   0,
-  0x0001,
+  0x0002,
   NULL,
   NULL,
-  "0.1",
+  "0.2",
   MariaDB_PLUGIN_MATURITY_EXPERIMENTAL
 }
 maria_declare_plugin_end;
