@@ -53,5 +53,25 @@ public:
   const Type_handler *type_handler() const override { return &type_handler_money; }
   bool send(Protocol *protocol) override;
   void make_send_field(Send_field *field) override;
+
+  enum money_format_style
+  {
+    MONEY_FMT_CURRENCY_FIRST= 0,
+    MONEY_FMT_CURRENCY_LAST
+  };
+
+  struct money_display_config
+  {
+    char currency[32];
+    char decimal_sep;
+    char thousands_sep;
+    bool allow_grouping;
+    money_format_style style;
+  };
+
+private:
+  bool parse_comment_config(money_display_config *cfg) const;
+  void format_money_string(String *to, double nr,
+                           const money_display_config &cfg) const;
 };
 
