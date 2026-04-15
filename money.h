@@ -46,3 +46,30 @@ static decimal_digits_t money_effective_decimals(decimal_digits_t dec)
 {
   return dec >= FLOATING_POINT_DECIMALS ? 2 : (dec == 0 ? 2 : dec);
 }
+
+static bool money_append_currency(String *to,
+                                   const Field_money::money_display_config &cfg,
+                                   bool before_number)
+{
+  if (!cfg.currency[0])
+    return false;
+  
+  size_t currency_len= strlen(cfg.currency);
+  bool is_alpha= isalpha((unsigned char) cfg.currency[0]);
+  
+  if (before_number)
+  {
+    if (to->append(cfg.currency, (uint32) currency_len))
+      return true;
+    if (is_alpha && to->append(' '))
+      return true;
+  }
+  else  // after_number
+  {
+    if (is_alpha && to->append(' '))
+      return true;
+    if (to->append(cfg.currency, (uint32) currency_len))
+      return true;
+  }
+  return false;
+}

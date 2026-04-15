@@ -150,33 +150,6 @@ bool Field_money::parse_comment_config(money_display_config *cfg) const
   return true;
 }
 
-static bool money_append_currency(String *to,
-                                   const Field_money::money_display_config &cfg,
-                                   bool before_number)
-{
-  if (!cfg.currency[0])
-    return false;
-  
-  size_t currency_len= strlen(cfg.currency);
-  bool is_alpha= isalpha((unsigned char) cfg.currency[0]);
-  
-  if (before_number)
-  {
-    if (to->append(cfg.currency, (uint32) currency_len))
-      return true;
-    if (is_alpha && to->append(' '))
-      return true;
-  }
-  else  // after_number
-  {
-    if (is_alpha && to->append(' '))
-      return true;
-    if (to->append(cfg.currency, (uint32) currency_len))
-      return true;
-  }
-  return false;
-}
-
 void Field_money::format_money_string(String *to, double nr,
                                       const money_display_config &cfg) const
 {
