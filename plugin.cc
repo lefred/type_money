@@ -197,7 +197,7 @@ maria_declare_plugin(type_money)
   0x0002,
   NULL,
   NULL,
-  "0.2",
+  "0.1.0",
   MariaDB_PLUGIN_MATURITY_EXPERIMENTAL
 }
 maria_declare_plugin_end;
